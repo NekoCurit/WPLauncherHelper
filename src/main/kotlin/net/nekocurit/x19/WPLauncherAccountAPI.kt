@@ -278,16 +278,6 @@ class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
         .asX19Like()
 
     /**
-     * 对组件发表评论
-     *
-     * @param itemId 物品Id
-     * @param content 评论内容
-     */
-    suspend fun sendItemCommit(itemId: ULong, content: String) = postWithAuth("/user-item-comment", """{"entity_id":"0","user_id":"${entity.entityId}","item_id":"$itemId","content":"$content","master_id":"0","reply_id":"0","total_like":0,"create_time":${Clock.System.now().toEpochMilliseconds()},"comment_type":0}""")
-        .body<ResponseX19Base>()
-        .throwOnNotOk()
-
-    /**
      * 登出账号
      */
     suspend fun logout() = postWithAuth("/authentication/delete", """{"user_id":"${entity.entityId}","logout_type":0}""")
