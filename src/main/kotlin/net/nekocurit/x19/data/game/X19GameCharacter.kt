@@ -2,13 +2,9 @@ package net.nekocurit.x19.data.game
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.decodeFromJsonElement
-import net.nekocurit.utils.json
 import net.nekocurit.utils.serializer.InstantLongSSerializer
 import net.nekocurit.x19.api.applyDeleteNetworkServerCharacter
 import net.nekocurit.x19.api.requestDeleteNetworkServerCharacter
-import net.nekocurit.x19.data.ResponseX19Base
-import net.nekocurit.x19.data.ResponseX19BaseMulti
 import net.nekocurit.x19.data.X19Entity
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
