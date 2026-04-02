@@ -1,0 +1,296 @@
+package net.nekocurit.x19
+
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.JsonObject
+import net.nekocurit.utils.json
+import net.nekocurit.x19.data.ResponseX19Base
+import net.nekocurit.x19.data.ResponseX19BaseMulti
+import net.nekocurit.x19.data.entity.X19AuthenticationEntity
+import net.nekocurit.x19.data.entity.X19AuthenticationEntity.Companion.asX19AuthenticationEntity
+import net.nekocurit.x19.data.game.X19Like
+import net.nekocurit.x19.data.game.X19Like.Companion.asX19Like
+import net.nekocurit.x19.data.game.X19NetworkServer.Companion.asX19NetworkServer
+import net.nekocurit.x19.data.game.X19NetworkServerJoinInfo.Companion.asX19NetworkServerJoinInfo
+import net.nekocurit.x19.data.game.X19OtherUser.Companion.asX19OtherUsers
+import net.nekocurit.x19.data.game.X19Purchase
+import net.nekocurit.x19.data.game.X19Purchase.Companion.asX19Purchase
+import net.nekocurit.x19.data.game.X19RentalServer.Companion.asX19RentalServer
+import net.nekocurit.x19.data.game.X19RentalServerJoinInfo.Companion.asX19RentalServerJoinInfo
+import net.nekocurit.x19.data.game.X19Role.Companion.asX19Role
+import net.nekocurit.x19.data.game.X19UserDetail.Companion.asX19UserDetail
+import kotlin.time.Clock
+
+class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
+
+    constructor(id: ULong, token: String): this(X19AuthenticationEntity(entityId = id, token = token))
+
+    val client = HttpClient(Java) {
+        install(ContentNegotiation) {
+            json(json, contentType = ContentType.Any)
+        }
+        defaultRequest {
+            header("User-Agent", "WPFLauncher/0.0.0.0")
+        }
+    }
+
+    /**
+     * 执行心跳
+     * 执行后会更新 token 如果需要长期在线必须执行 否则账号会掉线
+     */
+    suspend fun refresh() = postWithAuth(
+        path = "/authentication/update",
+        body = """{"entity_id":${entity.entityId}}""",
+        url = "https://x19obtcore.nie.netease.com:8443",
+        hasEncrypt = true
+    )
+        .let { NetEaseEncryptUtils.httpDecrypt(it.bodyAsBytes()) }
+        .let { json.decodeFromString<ResponseX19Base>(it) }
+        .throwOnNotOk()
+        .asX19AuthenticationEntity()
+        .also { entity = it }
+
+    /**
+     * 向自定义端点发送数据
+     * 
+     * @parm path 路径
+     * @param body 请求体
+     * @param hasEncrypt 是否加密
+     */
+    suspend fun postWithAuth(path: String, body: String, url: String = "https://x19apigatewayobt.nie.netease.com", hasEncrypt: Boolean = false) = client.post("$url$path") {
+        header("user-id", entity.entityId)
+        header("user-token", NetEaseEncryptUtils.computeDynamicToken(entity.token, path, body))
+
+        setBody(if (hasEncrypt) NetEaseEncryptUtils.httpEncrypt(body) else body)
+    }
+
+    /**
+     * 执行内部登录状态标记
+     * 账号一生中必须调用一次才能执行购买订单创建
+     * 如果不需要创建购买订单 则不需要调用此接口
+     */
+    suspend fun doLoginStart() = postWithAuth("/interconn/web/game-play-v2/login-start", """{"strict_mode":true}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+
+    /**
+     * 获取自身信息
+     */
+    suspend fun getSelfDetail() = postWithAuth("/user-detail", "")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19UserDetail()
+
+    /**
+     * 设置自身昵称
+     * 仅测试新注册账号首次登录可调用
+     *
+     * @param name 全局昵称
+     */
+    suspend fun setNickName(name: String) = postWithAuth("/nickname-setting", """{"name":"$name","entity_id":"${entity.entityId}"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+
+    /**
+     * 搜索陌生人
+     *
+     * @param input 名称或者邮箱
+     * @param isMail 是否为邮箱搜索
+     */
+    suspend fun searchFriends(input: String, isMail: Boolean) = postWithAuth("/user-search-friend", """{"name_or_mail":"$input","mail_flag":$isMail}""")
+        .body<ResponseX19BaseMulti>()
+        .throwOnNotOk()
+        .asX19OtherUsers()
+
+    /**
+     * 主动添加好友
+     *
+     * @param id 用户id
+     * @param message 消息
+     */
+    suspend fun addFriend(id: ULong, message: String = "消息") = postWithAuth("/user-apply-friend", """{"fid":$id,"comment":"","message":"$message"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+
+    /**
+     * 搜索租赁服
+     *
+     * @param key 关键词 可直接填写服务器号
+     */
+    suspend fun searchRentalServers(key: String) = postWithAuth("/rental-server/query/available-public-server", """{"offset":0,"sort_type":0,"world_name_key":"$key"}""")
+        .body<ResponseX19BaseMulti>()
+        .throwOnNotOk()
+        .asX19RentalServer()
+
+    /**
+     * 获取租赁服信息
+     *
+     * @param serverId 服务器号
+     */
+    suspend fun getRentalServerInfo(serverId: ULong) = postWithAuth("/rental-server-details/get", """{"server_id":"$serverId"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19RentalServer()
+
+    /**
+     * 获取租赁服直连信息
+     *
+     * @param serverId 服务器号
+     * @param password 密码
+     */
+    suspend fun getRentalServerJoinInfo(serverId: ULong, password: String = "") = postWithAuth("/rental-server-world-enter/get", """{"server_id":"$serverId","pwd":"$password"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19RentalServerJoinInfo()
+
+    /**
+     * 获取网络游戏已有角色列表
+     *
+     * @param serverId 服务器Id
+     */
+    suspend fun getNetworkServerRoles(serverId: ULong) = postWithAuth("/game-character/query/user-game-characters", """{"offset":0,"length":10,"user_id":"${entity.entityId}","game_id":"$serverId","game_type":2}""")
+        .body<ResponseX19BaseMulti>()
+        .throwOnNotOk()
+        .asX19Role()
+
+    /**
+     * 创建网络游戏角色
+     *
+     * @param serverId 服务器Id
+     * @param name 名称
+     */
+    suspend fun createNetworkServerRole(serverId: ULong, name: String = "") = postWithAuth("/game-character", """{"entity_id":"0","game_id":"$serverId","game_type":2,"user_id":"${entity.entityId}","name":"$name","create_time":555555}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19Role()
+
+    /**
+     * 请求删除网络游戏角色
+     * 请求后会进入 30天 等待状态 之后通过 `applyDeleteNetworkServerRole` 删除角色
+     *
+     * @param roleId 角色Id
+     */
+    suspend fun requestDeleteNetworkServerRole(roleId: ULong) = postWithAuth("/game-character/pre-delete", """{"entity_id":"$roleId"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19Role()
+
+    /**
+     * 删除网络游戏角色
+     * 需要先请求删除 `requestDeleteNetworkServerRole`
+     *
+     * @param roleId 角色Id
+     */
+    suspend fun applyDeleteNetworkServerRole(roleId: ULong) = postWithAuth("/game-character/delete", """{"entity_id":"$roleId"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19Role()
+
+    /**
+     * 获取网络服务器详情
+     *
+     * @param serverId 服务器Id
+     */
+    suspend fun getNetworkServerInfo(serverId: ULong) = postWithAuth("/item-details/get_v2", """{"item_id":"$serverId"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19NetworkServer()
+
+    /**
+     * 获取网络服务器连接信息
+     *
+     * @param serverId 服务器Id
+     */
+    suspend fun getNetworkServerAddress(serverId: ULong) = postWithAuth("/item-address/get", """{"item_id":"$serverId"}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19NetworkServerJoinInfo()
+
+    /**
+     * 设置皮肤
+     * 
+     * @param id 皮肤Id
+     * @param slim 是否应用纤细效果
+     */
+    suspend fun setSkin(id: ULong, slim: Boolean) = (if (slim) "1" else "0")
+        .let { mode -> postWithAuth("/user-game-skin-multi", """{"skin_settings":[{"game_type":9,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":8,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":2,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":10,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":7,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null}]}""") }
+        .body<ResponseX19BaseMulti>()
+        .throwOnNotOk()
+
+    /**
+     * 是否已购买指定组件
+     *
+     * @param itemId 物品Id (可为 网络服务器Id, 皮肤Id 等)
+     */
+    suspend fun isPurchase(itemId: ULong) = postWithAuth("/item/user-is-purchase-item", """{"item_id":"$itemId","length":0,"offset":0}""")
+        .body<ResponseX19Base>()
+        .entity is JsonObject
+
+    /**
+     * 获得通用组件购买订单
+     * 此为 内部状态 必须获取才能发布评论和状态
+     *
+     * @param itemId 物品Id
+     */
+    suspend fun createPurchaseOrder(itemId: ULong) = postWithAuth("/user-item-purchase", """{"entity_id":0,"item_id":"$itemId","item_level":0,"user_id":"${entity.entityId}","purchase_time":0,"last_play_time":0,"total_play_time":0,"receiver_id":"","buy_path":"PC_H5_LAUNCH_GAME","coupon_ids":null,"diamond":0,"activity_name":"","batch_count":1}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19Purchase()
+
+    /**
+     * 购买物品
+     *
+     * @param purchase 订单数据
+     */
+    @Suppress("SpellCheckingInspection")
+    suspend fun buyItem(purchase: X19Purchase) = postWithAuth("/buy-item-result", """{"orderid":"${purchase.orderId}","buy_type":${purchase.bugType}}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+
+    /**
+     * 申请组件是否喜欢实例
+     * 即启动器点开服务器详情页面中 推荐 / 不推荐
+     * 需要稍后使用 `updateNetworkServerLike` 更新评论
+     *
+     * @param itemId 物品Id
+     */
+    suspend fun requestItemLike(itemId: ULong) = postWithAuth("/user-item-like", """{"entity_id":"0","item_id":"$itemId","user_id":"${entity.entityId}","has_like":-1}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19Like()
+
+    /**
+     * 更新对组件是否喜欢
+     *
+     * @param like 实例
+     * @param flag 是否喜欢  null = 清空状态
+     */
+    suspend fun updateItemLike(like: X19Like, flag: Boolean?) = postWithAuth("/user-item-like/update", """{"entity_id":"${like.id}","item_id":"${like.itemId}","user_id":"${entity.entityId}","has_like":${flag?.let { flag -> if (flag) 1 else -1 } ?: 0}}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+        .asX19Like()
+
+    /**
+     * 对组件发表评论
+     *
+     * @param itemId 物品Id
+     * @param content 评论内容
+     */
+    suspend fun sendItemCommit(itemId: ULong, content: String) = postWithAuth("/user-item-comment", """{"entity_id":"0","user_id":"${entity.entityId}","item_id":"$itemId","content":"$content","master_id":"0","reply_id":"0","total_like":0,"create_time":${Clock.System.now().toEpochMilliseconds()},"comment_type":0}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+
+    /**
+     * 登出账号
+     */
+    suspend fun logout() = postWithAuth("/authentication/delete", """{"user_id":"${entity.entityId}","logout_type":0}""")
+        .body<ResponseX19Base>()
+        .throwOnNotOk()
+}
