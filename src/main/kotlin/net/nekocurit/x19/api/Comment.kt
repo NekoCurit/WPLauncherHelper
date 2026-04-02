@@ -8,6 +8,20 @@ import net.nekocurit.x19.data.item.X19Comment
 import kotlin.time.Clock
 
 /**
+ * 根据顶量获取组件评论
+ *
+ * @param id 组件Id
+ * @param page 翻页
+ */
+suspend fun WPLauncherAccountAPI.getTopItemComments(id: ULong, page: Int = 0) = postWithAuth(
+    path = "/user-item-comment/query/rank-by-user-comment-like",
+    body = """{"item_id":"$id","offset":$page,"length":5}"""
+)
+    .body<ResponseX19BaseMulti>()
+    .throwOnNotOk()
+    .decode<X19Comment>(this) { itemId = id }
+
+/**
  * 获取组件评论
  *
  * @param id 组件Id
