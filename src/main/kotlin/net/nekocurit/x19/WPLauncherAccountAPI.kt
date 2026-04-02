@@ -62,7 +62,7 @@ class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
      * @param body 请求体
      * @param hasEncrypt 是否加密
      */
-    suspend fun postWithAuth(path: String, body: String, url: String = "https://x19apigatewayobt.nie.netease.com", hasEncrypt: Boolean = false) = client.post("$url$path") {
+    suspend fun postWithAuth(path: String, body: String = "", url: String = "https://x19apigatewayobt.nie.netease.com", hasEncrypt: Boolean = false) = client.post("$url$path") {
         header("user-id", entity.entityId)
         header("user-token", NetEaseEncryptUtils.computeDynamicToken(entity.token, path, body))
 
