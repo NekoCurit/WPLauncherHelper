@@ -1,16 +1,14 @@
-package net.nekocurit.x19.data.game
+package net.nekocurit.x19.data.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.nekocurit.utils.json
-import net.nekocurit.x19.data.ResponseX19BaseMulti
 import kotlin.time.Instant
 
 @Serializable
-data class X19OtherUser(
+data class X19UserDetails(
     val nickname: String,
     @SerialName("headImage")
     val avatarUrl: String,
@@ -98,9 +96,5 @@ data class X19OtherUser(
             get() = rawHint
                 .takeIf { it.isNotBlank() }
                 ?.let { json.decodeFromString<OnlinePc>(it) }
-    }
-
-    companion object {
-        fun ResponseX19BaseMulti.asX19OtherUsers() = json.decodeFromJsonElement<List<X19OtherUser>>(this.entities)
     }
 }

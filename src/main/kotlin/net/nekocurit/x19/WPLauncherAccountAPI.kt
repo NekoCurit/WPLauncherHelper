@@ -19,7 +19,6 @@ import net.nekocurit.x19.data.game.X19Like
 import net.nekocurit.x19.data.game.X19Like.Companion.asX19Like
 import net.nekocurit.x19.data.game.X19NetworkServer.Companion.asX19NetworkServer
 import net.nekocurit.x19.data.game.X19NetworkServerJoinInfo.Companion.asX19NetworkServerJoinInfo
-import net.nekocurit.x19.data.game.X19OtherUser.Companion.asX19OtherUsers
 import net.nekocurit.x19.data.game.X19Purchase
 import net.nekocurit.x19.data.game.X19Purchase.Companion.asX19Purchase
 import net.nekocurit.x19.data.game.X19RentalServer.Companion.asX19RentalServer
@@ -27,6 +26,8 @@ import net.nekocurit.x19.data.game.X19RentalServerJoinInfo.Companion.asX19Rental
 import net.nekocurit.x19.data.game.X19UserDetail.Companion.asX19UserDetail
 
 class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
+
+    var cacheName = ""
 
     constructor(id: ULong, token: String): this(X19AuthenticationEntity(entityId = id, token = token))
 
@@ -85,6 +86,7 @@ class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
         .body<ResponseX19Base>()
         .throwOnNotOk()
         .asX19UserDetail()
+        .also { cacheName = it.name }
 
     /**
      * 设置自身昵称
@@ -93,27 +95,6 @@ class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
      * @param name 全局昵称
      */
     suspend fun setNickName(name: String) = postWithAuth("/nickname-setting", """{"name":"$name","entity_id":"${entity.entityId}"}""")
-        .body<ResponseX19Base>()
-        .throwOnNotOk()
-
-    /**
-     * 搜索陌生人
-     *
-     * @param input 名称或者邮箱
-     * @param isMail 是否为邮箱搜索
-     */
-    suspend fun searchFriends(input: String, isMail: Boolean) = postWithAuth("/user-search-friend", """{"name_or_mail":"$input","mail_flag":$isMail}""")
-        .body<ResponseX19BaseMulti>()
-        .throwOnNotOk()
-        .asX19OtherUsers()
-
-    /**
-     * 主动添加好友
-     *
-     * @param id 用户id
-     * @param message 消息
-     */
-    suspend fun addFriend(id: ULong, message: String = "消息") = postWithAuth("/user-apply-friend", """{"fid":$id,"comment":"","message":"$message"}""")
         .body<ResponseX19Base>()
         .throwOnNotOk()
 
