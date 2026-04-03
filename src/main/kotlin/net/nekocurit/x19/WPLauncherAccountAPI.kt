@@ -23,7 +23,6 @@ import net.nekocurit.x19.data.game.X19Purchase
 import net.nekocurit.x19.data.game.X19Purchase.Companion.asX19Purchase
 import net.nekocurit.x19.data.game.X19RentalServer.Companion.asX19RentalServer
 import net.nekocurit.x19.data.game.X19RentalServerJoinInfo.Companion.asX19RentalServerJoinInfo
-import net.nekocurit.x19.data.game.X19UserDetail.Companion.asX19UserDetail
 
 class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
 
@@ -76,25 +75,6 @@ class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
      * 如果不需要创建购买订单 则不需要调用此接口
      */
     suspend fun doLoginStart() = postWithAuth("/interconn/web/game-play-v2/login-start", """{"strict_mode":true}""")
-        .body<ResponseX19Base>()
-        .throwOnNotOk()
-
-    /**
-     * 获取自身信息
-     */
-    suspend fun getSelfDetail() = postWithAuth("/user-detail", "")
-        .body<ResponseX19Base>()
-        .throwOnNotOk()
-        .asX19UserDetail()
-        .also { cacheName = it.name }
-
-    /**
-     * 设置自身昵称
-     * 仅测试新注册账号首次登录可调用
-     *
-     * @param name 全局昵称
-     */
-    suspend fun setNickName(name: String) = postWithAuth("/nickname-setting", """{"name":"$name","entity_id":"${entity.entityId}"}""")
         .body<ResponseX19Base>()
         .throwOnNotOk()
 
