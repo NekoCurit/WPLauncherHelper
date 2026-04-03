@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.nekocurit.utils.json
+import net.nekocurit.utils.serializer.InstantLongSSerializer
+import net.nekocurit.x19.data.X19Entity
 import kotlin.time.Instant
 
 @Serializable
@@ -22,12 +24,13 @@ data class X19UserDetails(
     @SerialName("online_pcpe")
     val online: UInt,
     @SerialName("tLogout")
-    private val lastOnlineT: Long,
+    @Serializable(with = InstantLongSSerializer::class)
+    val lastOnline: Instant,
     @SerialName("online_status")
     private val rawOnlineStatus: String,
     @SerialName("game_info")
     private val rawGameInfo: JsonElement
-) {
+): X19Entity() {
 
     val statusPc
         get() = rawOnlineStatus
@@ -40,9 +43,6 @@ data class X19UserDetails(
             json.decodeFromJsonElement<OnlinePe>(rawGameInfo)
         }
             .getOrNull()
-
-    val lastOnline
-        get() = Instant.fromEpochMilliseconds(lastOnlineT * 1_000)
 
     @Serializable
     data class OnlinePe(

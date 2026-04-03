@@ -5,6 +5,7 @@ import net.nekocurit.x19.WPLauncherAccountAPI
 import net.nekocurit.x19.data.ResponseX19Base
 import net.nekocurit.x19.data.ResponseX19BaseMulti
 import net.nekocurit.x19.data.user.X19User
+import net.nekocurit.x19.data.user.X19UserDetails
 import net.nekocurit.x19.data.user.X19UserPublicState
 
 suspend fun WPLauncherAccountAPI.getUser(id: ULong) = postWithAuth(
@@ -29,10 +30,10 @@ suspend fun WPLauncherAccountAPI.getUser(ids: Collection<ULong>) = postWithAuth(
  * @param input 名称或者邮箱
  * @param isMail 是否为邮箱搜索
  */
-suspend fun WPLauncherAccountAPI.searchFriends(input: String, isMail: Boolean) = postWithAuth("/user-search-friend", """{"name_or_mail":"$input","mail_flag":$isMail}""")
+suspend fun WPLauncherAccountAPI.searchFriends(input: String, isMail: Boolean = input.contains("@")) = postWithAuth("/user-search-friend", """{"name_or_mail":"$input","mail_flag":$isMail}""")
     .body<ResponseX19BaseMulti>()
     .throwOnNotOk()
-    .decode<X19User>(this)
+    .decode<X19UserDetails>(this)
 
 /**
  * 主动添加好友
