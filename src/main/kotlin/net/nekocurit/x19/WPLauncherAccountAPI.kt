@@ -129,16 +129,6 @@ class WPLauncherAccountAPI(var entity: X19AuthenticationEntity) {
         .throwOnNotOk()
         .asX19NetworkServerJoinInfo()
 
-    /**
-     * 设置皮肤
-     * 
-     * @param id 皮肤Id
-     * @param slim 是否应用纤细效果
-     */
-    suspend fun setSkin(id: ULong, slim: Boolean) = (if (slim) "1" else "0")
-        .let { mode -> postWithAuth("/user-game-skin-multi", """{"skin_settings":[{"game_type":9,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":8,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":2,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":10,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null},{"game_type":7,"skin_type":31,"skin_id":"$id","skin_mode":$mode,"client_type":"java","entity_id":null}]}""") }
-        .body<ResponseX19BaseMulti>()
-        .throwOnNotOk()
 
     /**
      * 是否已购买指定组件
