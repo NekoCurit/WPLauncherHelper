@@ -11,6 +11,4 @@ val cipher = Skip32Cipher()
  *
  * @param id UUID().toString()
  */
-suspend fun WPLauncherAccountAPI.getSkinFromUUID(id: String) = cipher.computeUserIdFromUuid(id)
-    .toULong()
-    .let { getSkin(it) }
+suspend fun WPLauncherAccountAPI.getSkinFromUUID(id: String) = getSkin(cipher.computeUserIdFromUuid(id))
