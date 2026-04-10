@@ -7,7 +7,7 @@ import net.nekocurit.x19.data.skin.X19Skin
 import net.nekocurit.x19.data.skin.X19Skin.SkinMode
 
 /**
- * 获取自身皮肤
+ * 获取皮肤
  *
  * @param userId 指定用户Id 省略默认为自身
  */

@@ -8,13 +8,15 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.game.X19GameType
 
 @Serializable
 data class X19Skin(
     @SerialName("user_id")
     val userId: ULong,
     @SerialName("game_type")
-    val gameType: UInt,
+    @Serializable(with = X19GameType.Serializer::class)
+    val gameType: X19GameType,
     @SerialName("skin_type")
     val skinType: UInt,
     @SerialName("skin_id")
