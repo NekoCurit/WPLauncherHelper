@@ -6,9 +6,18 @@ import io.ktor.client.call.*
 import net.nekocurit.utils.json
 import net.nekocurit.x19.WPLauncherAccountAPI
 import net.nekocurit.x19.data.ResponseX19Base
+import net.nekocurit.x19.data.ResponseX19BaseMulti
 import net.nekocurit.x19.data.cloud_save.X19CloudSave
 import net.nekocurit.x19.data.cloud_save.X19CloudSaveDownload
 import net.nekocurit.x19.data.cloud_save.X19CloudSaveUpload
+
+suspend fun WPLauncherAccountAPI.getCloudSaveList() = postWithAuth(
+    path = "/cloud-save-v2/query/my-save-list",
+    body = """{"item_id":"${entity.entityId}","offset":0,"length":50}"""
+)
+    .body<ResponseX19BaseMulti>()
+    .throwOnNotOk()
+    .decode<X19CloudSave>(this)
 
 suspend fun WPLauncherAccountAPI.createCloudSave() = postWithAuth(
     path = "/cloud-save-v2",
