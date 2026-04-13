@@ -34,6 +34,14 @@ suspend fun WPLauncherAccountAPI.updateCloudSave(data: X19CloudSave) = postWithA
     .throwOnNotOk()
     .decode<X19CloudSave>(this)
 
+suspend fun WPLauncherAccountAPI.deleteCloudSave(id: ULong) = postWithAuth(
+    path = "/cloud-save-v2/delete",
+    body = """{"entity_id":"$id"}"""
+)
+    .body<ResponseX19Base>()
+    .throwOnNotOk()
+    .decode<X19CloudSave>(this)
+
 suspend fun WPLauncherAccountAPI.requestUploadCloudSave(id: ULong) = postWithAuth(
     path = "/cloud-save-upload-v2",
     body = """{"url":null,"active_time":0,"partnum":0,"entity_id":"$id"}"""
