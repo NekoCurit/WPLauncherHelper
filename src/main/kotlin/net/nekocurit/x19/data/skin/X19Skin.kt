@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.game.X19ClientType
 import net.nekocurit.x19.data.game.X19GameType
 
 @Serializable
@@ -25,7 +26,7 @@ data class X19Skin(
     @Serializable(with = SkinMode.Serializer::class)
     val skinMode: SkinMode,
     @SerialName("client_type")
-    val clientType: String
+    val clientType: X19ClientType
 ): X19Entity() {
     enum class SkinMode {
         DEFAULT,
