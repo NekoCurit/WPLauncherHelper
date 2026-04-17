@@ -71,6 +71,7 @@ object I4399PCGameAPI {
                 if (text.contains("验证码错误")) error("验证码错误")
                 if (text.contains("密码错误")) error("密码错误")
                 if (text.contains("用户不存在")) error("用户不存在")
+                if (text.contains("请稍后再试")) error("触发速率限制")
 
                 Regex("""parent.timestamp = "(.+?)"""").find(text)?.groupValues?.get(1)
             }
