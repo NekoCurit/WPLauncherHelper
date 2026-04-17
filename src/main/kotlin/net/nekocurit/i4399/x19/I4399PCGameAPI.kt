@@ -19,6 +19,7 @@ object I4399PCGameAPI {
     /**
      * 该接口已于 2026.1.1 弃用
      * 仅老账号可以登录
+     * 存在速率限制
      */
     suspend fun login(username: String, password: String, onCaptcha: suspend (ByteArray) -> String): WPLauncherCookie4399PC {
         val client = HttpClient(Java) {
@@ -41,28 +42,12 @@ object I4399PCGameAPI {
         val randTime = client.submitForm(
             url = "https://ptlogin.4399.com/ptlogin/login.do?v=1",
             formParameters = Parameters.build {
-                append("loginFrom", "uframe")
-                append("postLoginHandler", "default")
-                append("layoutSelfAdapting", "true")
-                append("externalLogin", "qq")
-                append("displayMode", "popup")
-                append("layout", "vertical")
                 append("bizId", "2100001792")
                 append("appId", "kid_wdsj")
                 append("gameId", "wd")
-                append("css", "http://microgame.5054399.net/v2/resource/cssSdk/default/login.css")
-                append("redirectUrl", "")
-                append("sessionId", session?.first ?: "")
-                append("mainDivId", "popup_login_div")
-                append("includeFcmInfo", "false")
-                append("level", "8")
-                append("regLevel", "8")
-                append("userNameLabel", "4399%E7%94%A8%E6%88%B7%E5%90%8D&")
-                append("userNameTip", "%E8%AF%B7%E8%BE%93%E5%85%A54399%E7%94%A8%E6%88%B7%E5%90%8D&")
-                append("welcomeTip", "%E6%AC%A2%E8%BF%8E%E5%9B%9E%E5%88%B04399")
-                append("sec", "1")
                 append("password", password)
                 append("username", username)
+                append("sessionId", session?.first ?: "")
                 append("inputCaptcha", session?.second ?: "")
             }
         )
@@ -108,18 +93,9 @@ object I4399PCGameAPI {
                     parameters.apply {
                         append("action", "login")
                         append("appId", "kid_wdsj")
-                        append("loginLevel", "8")
-                        append("regLevel", "8")
                         append("bizId", "2100001792")
-                        append("externalLogin", "qq")
-                        append("qrLogin", "true")
-                        append("layout", "vertical")
-                        append("level", "101")
-                        @Suppress("HttpUrlsUsage")
-                        append("css", "http://microgame.5054399.net/v2/resource/cssSdk/default/login.css")
                         append("v", "2018_11_26_16")
                         append("postLoginHandler", "redirect")
-                        append("checkLoginUserCookie", "true")
                         append("redirectUrl", gameUrl)
                     }
                 }.toString())
