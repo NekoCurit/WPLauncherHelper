@@ -9,6 +9,7 @@ data class Request4399X19Authorize(
     val captcha: Pair<String, String>? = null
 ) {
 
+    @Suppress("SpellCheckingInspection")
     fun toParameters() = Parameters.build {
         append("password", password)
         append("username", username)
@@ -17,6 +18,7 @@ data class Request4399X19Authorize(
             append("captcha_id", captcha.first)
         }
         append("response_type", "TOKEN")
+        append("auth_action", "ORILOGIN")
         append("client_id", Regex("""<input type="hidden" name="client_id" value="(.*?)"/>""").find(oauthBody)?.groupValues[1]!!)
         append("ref", Regex("""<input type="hidden" name="ref" value="(.*?)"/>""").find(oauthBody)?.groupValues[1]!!)
         append("bizId", Regex("""<input type="hidden" name="bizId" value="(.*?)"/>""").find(oauthBody)?.groupValues[1]!!)
