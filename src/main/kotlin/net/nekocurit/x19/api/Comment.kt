@@ -15,7 +15,7 @@ import kotlin.time.Clock
  */
 suspend fun WPLauncherAccountAPI.getTopItemComments(id: ULong, page: Int = 0) = postWithAuth(
     path = "/user-item-comment/query/rank-by-user-comment-like",
-    body = """{"item_id":"$id","offset":$page,"length":5}"""
+    body = """{"item_id":"$id","offset":${page * 5},"length":5}"""
 )
     .body<ResponseX19BaseMulti>()
     .throwOnNotOk()
@@ -30,7 +30,7 @@ suspend fun WPLauncherAccountAPI.getTopItemComments(id: ULong, page: Int = 0) = 
  */
 suspend fun WPLauncherAccountAPI.getItemComments(id: ULong, masterId: ULong = 0UL, page: Int = 0) = postWithAuth(
     path = "/user-item-comment/query/search-by-item",
-    body = """{"item_id":"$id","master_id":"$masterId","offset":$page,"length":5}"""
+    body = """{"item_id":"$id","master_id":"$masterId","offset":${page * 5},"length":5}"""
 )
     .body<ResponseX19BaseMulti>()
     .throwOnNotOk()
