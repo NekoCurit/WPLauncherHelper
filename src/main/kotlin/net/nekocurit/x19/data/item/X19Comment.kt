@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import net.nekocurit.utils.serializer.InstantLongSSerializer
 import net.nekocurit.x19.api.getComment
 import net.nekocurit.x19.api.getItemComments
+import net.nekocurit.x19.api.getUser
 import net.nekocurit.x19.api.likeComment
 import net.nekocurit.x19.api.sendItemComment
 import net.nekocurit.x19.data.X19Entity
@@ -40,6 +41,8 @@ data class X19Comment(
      * 组件Id
      */
     var itemId: ULong = 0UL
+
+    suspend fun getSender() = api.getUser(senderId)
 
     suspend fun getMaster() = masterId
         .takeIf { it != 0UL }
