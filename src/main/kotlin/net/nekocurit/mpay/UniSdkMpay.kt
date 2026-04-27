@@ -100,6 +100,7 @@ class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: St
         )
         .also { println(it.bodyAsText()) }
         .checkError()
+        .let { }
 
     /**
      * 验证验证码并登陆
