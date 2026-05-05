@@ -35,10 +35,10 @@ data class X19SimplePlayerSkin(
     companion object {
         suspend fun List<X19Skin>.toSimple(api: WPLauncherAccountAPI) = X19SimplePlayerSkin(
             firstOrNull { it.clientType == X19ClientType.Java }
-                ?.let { Detail(it.skinId, api.getItemDetails(it.skinId).name, it.skinMode, api.getItemDownload(it.skinId).components.first().resourceUrl) }
+                ?.let { Detail.fromRaw (api, it) }
                 ?: Detail.DEFAULT,
             firstOrNull { it.clientType == X19ClientType.Bedrock }
-                ?.let { Detail(it.skinId, api.getItemDetails(it.skinId).name, it.skinMode, api.getItemDownload(it.skinId).components.first().resourceUrl) }
+                ?.let { Detail.fromRaw (api, it) }
                 ?: Detail.DEFAULT
         )
     }
@@ -50,6 +50,12 @@ data class X19SimplePlayerSkin(
     ) {
         companion object {
             val DEFAULT = Detail(X19DefaultSkins.STEVE, "默认皮肤", X19Skin.SkinMode.DEFAULT, X19DefaultSkins.STEVE_DOWNLOAD_URL)
+            suspend fun fromRaw(api: WPLauncherAccountAPI, raw: X19Skin) = Detail(
+                id = raw.skinId,
+                name = runCatching { api.getItemDetails(raw.skinId).name }.getOrDefault("已下架无法查询名称"),
+                mode = raw.skinMode,
+                url = api.getItemDownload(raw.skinId).components.first().resourceUrl
+            )
         }
     }
 }
