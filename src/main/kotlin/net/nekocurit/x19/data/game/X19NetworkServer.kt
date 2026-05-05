@@ -2,18 +2,20 @@ package net.nekocurit.x19.data.game
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.decodeFromJsonElement
-import net.nekocurit.utils.json
-import net.nekocurit.x19.data.ResponseX19Base
+import net.nekocurit.utils.serializer.InstantLongSSerializer
+import net.nekocurit.x19.data.X19Entity
 import kotlin.time.Instant
 
+/**
+ * @param currentOnline 只有组件类型为 网络服务器 时才适用
+ */
 @Serializable
 data class X19NetworkServer(
     val name: String,
     @SerialName("brief_image_urls")
     val wallpaperUrls: List<String>,
     @SerialName("entity_id")
-    private val rawId: String,
+    val id: ULong,
     @SerialName("brief_summary")
     val simpleDescription: String,
     @SerialName("detail_description")
@@ -25,9 +27,11 @@ data class X19NetworkServer(
     @SerialName("download_num")
     val totalDownload: ULong,
     @SerialName("edit_time")
-    private val rawEditAt: Long,
+    @Serializable(with = InstantLongSSerializer::class)
+    val editAt: Instant,
     @SerialName("publish_time")
-    private val rawPublishAt: Long,
+    @Serializable(with = InstantLongSSerializer::class)
+    val publishAt: Instant,
     @SerialName("like_num")
     val totalLikes: ULong,
     @SerialName("recommend_tag")
@@ -39,22 +43,13 @@ data class X19NetworkServer(
     @SerialName("network_tag")
     val networkTag: String,
     @SerialName("online_count")
-    val currentOnline: ULong,
+    val currentOnline: ULong = 0UL,
     @SerialName("tag_list")
     val otherTags: List<Tag>
-) {
-
-    val id
-        get() = rawId.toULong()
+): X19Entity() {
 
     val developer
         get() = Developer(rawDeveloperName, rawDeveloperEmail)
-
-    val publishAt
-        get() = Instant.fromEpochMilliseconds(rawPublishAt * 1000)
-
-    val editAt
-        get() = Instant.fromEpochMilliseconds(rawEditAt * 1000)
 
     @Serializable
     data class Developer(
@@ -70,9 +65,4 @@ data class X19NetworkServer(
         val type: Int,
         val name: String
     )
-
-
-    companion object {
-        fun ResponseX19Base.asX19NetworkServer() = json.decodeFromJsonElement<X19NetworkServer>(this.entity)
-    }
 }
