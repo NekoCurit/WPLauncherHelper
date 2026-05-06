@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Parameters
 import net.nekocurit.i4399.data.Request4399Login
 import net.nekocurit.i4399.data.Request4399ModifyCard
 import net.nekocurit.i4399.data.Request4399Register
@@ -110,5 +111,72 @@ object I4399Utils {
                 formParameters = Request4399ModifyCard(hash = hash, nick = newNick).toParameters()
             )
         }
+    }
+
+    suspend fun run2(
+        username: String,
+        password: String,
+        ocr: suspend (ByteArray) -> String,
+        doRealName: suspend () -> Pair<String, String>,
+        newPassword: String
+    ) {
+        val client = HttpClient {
+            install(HttpCookies)
+        }
+
+        val captcha = client.get("https://ptlogin.4399.com/ptlogin/verify.do?username=$username&appId=www_home&t=${System.currentTimeMillis()}&inputWidth=iptw2&v=1")
+            .bodyAsText()
+            .let { Regex("""javascript:UniLoginChangPIC\('(.*?)'\)""").find(it)?.groupValues?.get(1) }
+            ?.let { session ->
+                val img = client.get("https://ptlogin.4399.com/ptlogin/captcha.do?captchaId=$session").bodyAsBytes()
+                return@let State4399Captcha(session, ocr(img))
+            }
+
+        client.submitForm(
+            url = "https://ptlogin.4399.com/ptlogin/login.do?v=1",
+            formParameters = Request4399Login(username, password, captcha).toParameters()
+        )
+            .also {
+                val response = it.bodyAsText()
+
+                @Suppress("SpellCheckingInspection")
+                if (response.contains("needVerifyIdcard = false")) {
+                    // 无实名自动完成实名
+                    if (response.contains("needVerifyIdcard = true")) {
+                        val realName = doRealName()
+
+                        client.submitForm(
+                            url = "https://ptlogin.4399.com/ptlogin/setIdcardAndRealname.do",
+                            formParameters = Request4399SetIdCardAndRealName(realName.first, realName.second).toParameters()
+                        )
+                    }
+                } else {
+                    Regex("""<div[^>]*id="Msg"[^>]*>(.*?)</div>""")
+                        .find(response)
+                        ?.also { group -> error(group.groupValues[1]) }
+                    Regex("""eventHandles.__errorCallback\('(.*?)'\);""")
+                        .find(response)
+                        ?.also { group -> error(group.groupValues[1]) }
+
+                    error("未知错误")
+                }
+            }
+
+        client.submitForm(
+            url = "https://u.4399.com/security/service/security/verifyConfirm",
+            formParameters = Parameters.build {
+                append("type", "pwd")
+                append("code", password)
+            }
+        )
+        client.submitForm(
+            url = "https://u.4399.com/security/service/security/pwd",
+            formParameters = Parameters.build {
+                append("pwd", I4399EncryptUtils.encrypt2(newPassword))
+                append("pwdC", I4399EncryptUtils.encrypt2(newPassword))
+                append("ver", "2")
+            }
+        )
+            .also { if (!it.bodyAsText().contains("200")) error("修改失败") }
     }
 }
