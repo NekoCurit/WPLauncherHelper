@@ -2,7 +2,6 @@ package net.nekocurit.x19
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -24,7 +23,7 @@ import kotlin.random.Random
 
 object WPLauncherAPI {
 
-    val client = HttpClient(Java) {
+    val client = HttpClient {
         install(ContentNegotiation) {
             json(json, contentType = ContentType.Any)
         }

@@ -1,7 +1,6 @@
 package net.nekocurit.i4399.x19
 
 import io.ktor.client.*
-import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
@@ -22,7 +21,7 @@ object I4399PCGameAPI {
      * 存在速率限制
      */
     suspend fun login(username: String, password: String, onCaptcha: suspend (ByteArray) -> String): WPLauncherCookie4399PC {
-        val client = HttpClient(Java) {
+        val client = HttpClient {
             install(HttpCookies)
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true }, contentType = ContentType.Any)
