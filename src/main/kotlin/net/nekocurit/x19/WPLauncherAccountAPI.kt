@@ -2,7 +2,6 @@ package net.nekocurit.x19
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -20,7 +19,7 @@ class WPLauncherAccountAPI(var session: WPLauncherSession) {
     constructor(id: ULong, token: String): this(WPLauncherSession(id, token))
     constructor(entity: X19AuthenticationEntity): this(WPLauncherSession(entity))
 
-    val client = HttpClient(Java) {
+    val client = HttpClient {
         install(ContentNegotiation) {
             json(json, contentType = ContentType.Any)
         }

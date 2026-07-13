@@ -11,11 +11,11 @@ repositories {
 }
 
 dependencies {
-    implementation(platform(libs.ktor.bom))
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.java)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
+    api(platform(libs.ktor.bom))
+    api(libs.ktor.client.core)
+    api(libs.ktor.client.java)
+    api(libs.ktor.client.content.negotiation)
+    api(libs.ktor.serialization.kotlinx.json)
 }
 
 java {
