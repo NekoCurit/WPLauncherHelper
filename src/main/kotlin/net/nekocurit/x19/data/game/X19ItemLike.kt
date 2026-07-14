@@ -2,7 +2,7 @@ package net.nekocurit.x19.data.game
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 @Serializable
 data class X19ItemLike(
@@ -12,7 +12,7 @@ data class X19ItemLike(
     val itemId: ULong,
     @SerialName("has_like")
     private val rawHasLike: Int
-): X19Entity() {
+): X19AuthEntity() {
     val like
         get() = rawHasLike
             .takeIf { it != 0 }

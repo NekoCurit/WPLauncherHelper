@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.utils.serializer.InstantLongSSerializer
 import net.nekocurit.x19.api.getItemDetails
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import kotlin.time.Instant
 
 @Serializable
@@ -25,6 +25,6 @@ data class X19ItemSimple(
     val publishAt: Instant,
     @SerialName("item_version")
     val version: String
-): X19Entity() {
+): X19AuthEntity() {
     suspend fun getFullDetails() = api.getItemDetails(id)
 }

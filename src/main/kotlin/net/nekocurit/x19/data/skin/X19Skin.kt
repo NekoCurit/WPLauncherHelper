@@ -7,7 +7,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import net.nekocurit.x19.data.game.X19ClientType
 import net.nekocurit.x19.data.game.X19GameType
 
@@ -27,7 +27,7 @@ data class X19Skin(
     val skinMode: SkinMode,
     @SerialName("client_type")
     val clientType: X19ClientType
-): X19Entity() {
+): X19AuthEntity() {
     enum class SkinMode(val displayName: String) {
         DEFAULT("粗壮"),
         SLIM("纤细");

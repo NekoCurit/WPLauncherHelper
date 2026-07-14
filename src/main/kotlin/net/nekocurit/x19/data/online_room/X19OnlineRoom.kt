@@ -5,13 +5,13 @@ import kotlinx.serialization.Serializable
 import net.nekocurit.x19.api.onlineRoomCurrentJoinInfo
 import net.nekocurit.x19.api.onlineRoomGetMembers
 import net.nekocurit.x19.api.onlineRoomLeave
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 @Serializable
 data class X19OnlineRoom(
     @SerialName("room_id")
     val id: ULong
-): X19Entity() {
+): X19AuthEntity() {
     suspend fun getMembers() = api.onlineRoomGetMembers(id)
     suspend fun getJoinInfo() = api.onlineRoomCurrentJoinInfo()
     suspend fun leave() = api.onlineRoomLeave(id)

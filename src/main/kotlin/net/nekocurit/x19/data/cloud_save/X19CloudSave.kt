@@ -5,7 +5,7 @@ package net.nekocurit.x19.data.cloud_save
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.utils.serializer.InstantLongSSerializer
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import kotlin.time.Instant
 
 @Serializable
@@ -24,7 +24,7 @@ data class X19CloudSave(
     val version: UInt,
     @SerialName("vip_only")
     val vipOnly: Boolean,
-): X19Entity() {
+): X19AuthEntity() {
     @Serializable
     data class Part(
         val md5: String,

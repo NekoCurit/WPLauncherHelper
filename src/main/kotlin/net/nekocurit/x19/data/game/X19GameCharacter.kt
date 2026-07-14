@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import net.nekocurit.utils.serializer.InstantLongSSerializer
 import net.nekocurit.x19.api.applyDeleteNetworkServerCharacter
 import net.nekocurit.x19.api.requestDeleteNetworkServerCharacter
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -25,7 +25,7 @@ data class X19GameCharacter(
     val gameId: ULong,
     @SerialName("game_type")
     val gameType: UInt
-): X19Entity() {
+): X19AuthEntity() {
 
     /**
      * 是否处于等待删除状态

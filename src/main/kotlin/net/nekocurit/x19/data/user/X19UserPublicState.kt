@@ -3,7 +3,7 @@ package net.nekocurit.x19.data.user
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.x19.api.likeUser
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 /**
  * @param totalPublicFollow 关注用户数
@@ -38,7 +38,7 @@ data class X19UserPublicState(
     val totalView: UInt,
     @SerialName("has_like")
     val hasLike: Boolean
-): X19Entity() {
+): X19AuthEntity() {
     /**
      * 为该用户点赞/取消点赞
      *

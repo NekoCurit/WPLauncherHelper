@@ -7,7 +7,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 /**
  * @param id 这里不是启动器显示的服务器号, 而是内部 id
@@ -35,7 +35,7 @@ data class X19RentalServer(
     @SerialName("has_pwd")
     @Serializable(with = HasPasswordSerializer::class)
     val hasPassword: Boolean
-): X19Entity() {
+): X19AuthEntity() {
 
     object HasPasswordSerializer: KSerializer<Boolean> {
         override val descriptor = PrimitiveSerialDescriptor("HasPassword", PrimitiveKind.BOOLEAN)

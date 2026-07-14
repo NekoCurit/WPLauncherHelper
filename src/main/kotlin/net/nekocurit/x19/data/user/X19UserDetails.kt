@@ -6,7 +6,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.nekocurit.utils.json
 import net.nekocurit.utils.serializer.InstantLongSSerializer
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import kotlin.time.Instant
 
 @Serializable
@@ -30,7 +30,7 @@ data class X19UserDetails(
     private val rawOnlineStatus: String,
     @SerialName("game_info")
     private val rawGameInfo: JsonElement
-): X19Entity() {
+): X19AuthEntity() {
 
     val statusPc
         get() = rawOnlineStatus

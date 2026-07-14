@@ -59,4 +59,11 @@ object WPLauncherAPI {
         .let { json.decodeFromString<ResponseX19Base>(it) }
         .throwOnNotOk()
         .asX19AuthenticationEntity()
+
+    /**
+     * 向自定义端点发送数据
+     *
+     * @parm path 路径
+     */
+    suspend fun get(path: String, url: String = "https://x19apigatewayobt.nie.netease.com") = client.get("$url$path")
 }

@@ -7,7 +7,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 /**
  * @param token 上传凭据
@@ -18,7 +18,7 @@ import net.nekocurit.x19.data.X19Entity
 data class X19ImageUpload(
     val token: String,
     val url: String
-): X19Entity() {
+): X19AuthEntity() {
 
     @Serializable
     data class ImageMetadata(

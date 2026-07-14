@@ -5,7 +5,7 @@ import net.nekocurit.x19.WPLauncherAccountAPI
 import net.nekocurit.x19.api.getItemDetails
 import net.nekocurit.x19.api.getItemDownload
 import net.nekocurit.x19.api.getSkin
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import net.nekocurit.x19.data.game.X19ClientType
 import net.nekocurit.x19.data.skin.X19DefaultSkins
 import net.nekocurit.x19.data.skin.X19Skin
@@ -31,7 +31,7 @@ suspend fun WPLauncherAccountAPI.getSkinFromId(id: ULong) = getSkin(id).toSimple
 data class X19SimplePlayerSkin(
     val java: Detail,
     val bedrock: Detail
-): X19Entity() {
+): X19AuthEntity() {
     companion object {
         suspend fun List<X19Skin>.toSimple(api: WPLauncherAccountAPI) = X19SimplePlayerSkin(
             firstOrNull { it.clientType == X19ClientType.Java }
