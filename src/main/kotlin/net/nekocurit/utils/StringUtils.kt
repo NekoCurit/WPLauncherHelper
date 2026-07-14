@@ -1,7 +1,5 @@
 package net.nekocurit.utils
 
-import java.security.MessageDigest
+import korlibs.crypto.md5
 
-fun String.encodeMd5() = MessageDigest.getInstance("MD5")
-    .digest(toByteArray())
-    .toHexString()
+fun String.md5() = this.toByteArray().md5().toString()

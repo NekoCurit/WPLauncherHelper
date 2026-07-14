@@ -19,9 +19,9 @@ import net.nekocurit.utils.json
 import net.nekocurit.utils.nextMacAddress
 import net.nekocurit.utils.nextString
 import net.nekocurit.x19.WPLUpdaterAPI
-import java.util.*
 import kotlin.io.encoding.Base64
 import kotlin.random.Random
+import kotlin.uuid.Uuid
 
 class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: String = runBlocking { WPLUpdaterAPI.get().version }) {
 
@@ -43,7 +43,7 @@ class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: St
      * 注册设备
      * 此接口调用频繁会风控 强烈建议缓存设备数据
      */
-    suspend fun registerDevice(id: String = UUID.randomUUID().toString().replace("-", "")) = client
+    suspend fun registerDevice(id: String = Uuid.random().toString().replace("-", "")) = client
         .submitForm(
             url = "/mpay/games/$project/devices",
             formParameters = buildMpayParameters {
