@@ -1,8 +1,6 @@
 package net.nekocurit.cipher
 
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.security.MessageDigest
+import korlibs.crypto.md5
 
 class Skip32Cipher(val key: ByteArray = "SaintSteve".toByteArray()) {
 
@@ -71,9 +69,7 @@ class Skip32Cipher(val key: ByteArray = "SaintSteve".toByteArray()) {
         .skip32(false)
         .let { (it[0] shl 24) or (it[1] shl 16) or (it[2] shl 8) or it[3] }
 
-    fun generateRoleUuid(name: String, id: ULong) = MessageDigest
-        .getInstance("MD5")
-        .digest((name.toByteArray()))
+    fun generateRoleUuid(name: String, id: ULong) = name.toByteArray().md5().bytes
         .apply {
             val encrypted = encrypt(id.toInt())
 
@@ -91,9 +87,13 @@ class Skip32Cipher(val key: ByteArray = "SaintSteve".toByteArray()) {
         .replace("-", "")
         .apply { require(length == 32) { "长度不符" } }
         .hexToByteArray()
-        .let { ByteBuffer.wrap(it, 12, 4) }
-        .order(ByteOrder.LITTLE_ENDIAN)
-        .let { decrypt(it.int) }
+        .let { bytes ->
+            bytes[12].toInt() and 0xFF or
+                    ((bytes[13].toInt() and 0xFF) shl 8) or
+                    ((bytes[14].toInt() and 0xFF) shl 16) or
+                    ((bytes[15].toInt() and 0xFF) shl 24)
+        }
+        .let { decrypt(it) }
         .toULong()
 
 }

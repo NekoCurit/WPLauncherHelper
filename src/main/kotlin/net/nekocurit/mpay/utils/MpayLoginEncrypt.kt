@@ -3,14 +3,14 @@ package net.nekocurit.mpay.utils
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.mpay.entity.MpayDevice
-import net.nekocurit.utils.encodeMd5
+import net.nekocurit.utils.md5
 import net.nekocurit.utils.json
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
 object MpayLoginEncrypt {
 
-    fun encryptLoginParams(email: String, password: String, device: MpayDevice) = Parameters(email, password.encodeMd5(), device.uniqueId)
+    fun encryptLoginParams(email: String, password: String, device: MpayDevice) = Parameters(email, password.md5(), device.uniqueId)
         .let { json.encodeToString(it) }
         .let { input ->
             val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
