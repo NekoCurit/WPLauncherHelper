@@ -8,7 +8,7 @@ import net.nekocurit.x19.api.getItemComments
 import net.nekocurit.x19.api.getUser
 import net.nekocurit.x19.api.likeComment
 import net.nekocurit.x19.api.sendItemComment
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import kotlin.time.Instant
 
 /**
@@ -36,7 +36,7 @@ data class X19Comment(
     val replyId: ULong,
     @SerialName("total_like")
     val totalLike: ULong,
-): X19Entity() {
+): X19AuthEntity() {
     /**
      * 组件Id
      */

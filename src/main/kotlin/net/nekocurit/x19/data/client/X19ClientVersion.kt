@@ -1,13 +1,12 @@
-package net.nekocurit.x19.data.game
+package net.nekocurit.x19.data.client
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.x19.data.X19AuthEntity
 
 @Serializable
-data class X19Purchase(
-    @SerialName("buy_type")
-    val bugType: Int,
+data class X19ClientVersion(
     @SerialName("entity_id")
-    val orderId: ULong,
+    val id: ULong,
+    val name: String
 ): X19AuthEntity()

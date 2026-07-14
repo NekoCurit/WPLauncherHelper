@@ -3,7 +3,7 @@ package net.nekocurit.x19.data.item
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.utils.serializer.InstantLongSSerializer
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 import kotlin.time.Instant
 
 /**
@@ -46,7 +46,7 @@ data class X19ItemDetails(
     val currentOnline: ULong = 0UL,
     @SerialName("tag_list")
     val otherTags: List<Tag>
-): X19Entity() {
+): X19AuthEntity() {
 
     val developer
         get() = Developer(rawDeveloperName, rawDeveloperEmail)

@@ -2,7 +2,7 @@ package net.nekocurit.x19.data.download
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 @Serializable
 data class X19DownloadComponent(
@@ -24,4 +24,4 @@ data class X19DownloadComponent(
     val jarMd5: String,
     @SerialName("mc_version_name")
     val mcVersion: String,
-): X19Entity()
+): X19AuthEntity()

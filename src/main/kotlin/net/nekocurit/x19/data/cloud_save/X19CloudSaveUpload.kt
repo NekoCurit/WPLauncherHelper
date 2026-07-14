@@ -4,7 +4,7 @@ import io.ktor.client.request.*
 import io.ktor.http.HttpHeaders
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 @Suppress("SpellCheckingInspection")
 @Serializable
@@ -16,7 +16,7 @@ data class X19CloudSaveUpload(
     val url: String,
     @SerialName("active_time")
     val activeTime: UInt
-): X19Entity() {
+): X19AuthEntity() {
     suspend fun upload(data: ByteArray) {
         api.client.put(url) {
             header(HttpHeaders.ContentType, "application/x-7z-compressed")

@@ -21,10 +21,16 @@ data class ResponseX19BaseMulti(
         if (!isOk) error(message)
     }
 
-    inline fun <reified T: X19Entity> decode(api: WPLauncherAccountAPI, block: T.() -> Unit = {}) = json
+    inline fun <reified T: X19AuthEntity> decode(api: WPLauncherAccountAPI, block: T.() -> Unit = {}) = json
         .decodeFromJsonElement<List<T>>(entities)
         .onEach {
             it.api = api
+            block(it)
+        }
+
+    inline fun <reified T: X19Entity> decodeNoAuth(block: T.() -> Unit = {}) = json
+        .decodeFromJsonElement<List<T>>(entities)
+        .onEach {
             block(it)
         }
 }

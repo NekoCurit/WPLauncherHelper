@@ -2,7 +2,7 @@ package net.nekocurit.x19.data.online_room
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.nekocurit.x19.data.X19Entity
+import net.nekocurit.x19.data.X19AuthEntity
 
 @Serializable
 data class X19OnlineRoomMember(
@@ -11,7 +11,7 @@ data class X19OnlineRoomMember(
     val ident: UInt,
     @SerialName("recharge_benefit_level")
     val rechargeBenefitLevel: UInt,
-): X19Entity() {
+): X19AuthEntity() {
     val isAdmin
         get() = ident != 0U
 }
