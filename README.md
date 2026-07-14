@@ -2,13 +2,100 @@
 
 WPLauncherHelper 是一个使用 Kotlin/JVM 轻量的实现
 
-**您必须合理的使用它, 开发者不承担使用者滥用造成的责任**
+**您必须合理的使用它, 项目贡献者及所有者 不会承担 使用者 滥用造成的责任**
+
+
+## 功能列表
+
+- 🟩 4399
+    - 🟨 创建账号 (受到速率限制)
+    - 🟩 登录账号
+    - 🟨 更改账号资料 (仅能更改一次)
+    - 🟩 第三方游戏 Oauth 登陆
+- 🟩 x19
+    - 🟩 获取启动器最新版本 (x19_java_patchlist)
+    - 🟩 登陆 (authentication-otp)
+    - 🟩 心跳 (authentication/update)
+    - 🟩 昵称
+        - 🟩 初始化
+        - 🟩 改名
+    - 🟩 通用组件
+        - 🟩 基本信息查看
+        - 🟩 下载组件
+        - 🟩 点赞/点踩
+        - 🟩 评论
+            - 🟩 查看
+            - 🟩 发布
+    - 🟩 单人模式云存档
+        - 🟩 获取存档列表
+        - 🟩 删除存档
+        - 🟩 获取下载链接
+        - 🟩 上传存档
+    - 🟩 租赁服
+        - 🟩 获取直连IP
+    - 🟩 网络游戏
+        - 🟩 创建角色
+        - 🟩 获取直连IP
+    - 🟨 好友系统
+        - 🟩 搜索好友
+        - 🟩 主动添加好友
+        - 🟥 查看好友列表
+        - 🟥 删除好友
+    - 🟩 图床
+        - 🟩 上传图片并获取图片直链 (需审核)
+    - 🟩 游戏内
+        - 🟥 与认证服务器通信以进服 (会被砍成血雾 暂不开源相关代码)
+        - 🟩 根据 **启动器账号 EntityId** 获取玩家皮肤
+    - 🟩 算法
+        - 🟩 根据 **UUID** 计算 **启动器账号 EntityId**
+- 🟥 g79
+
+## 快速开始
+
+这是一个简单的示范
+
+```kotlin
+fun main(vararg args: String) {
+    val api = I4399GameSDKAPI(CONFIG_NET_EASE_MC)
+
+    runBlocking {
+        // 4399 mixed login
+        api.registerDevice()
+        val state =  api.login(
+            username = System.getenv("USERNAME"),
+            password =  System.getenv("PASSWORD"),
+            onCaptcha = { raw ->
+                File("captcha.png").writeBytes(raw)
+
+                println("Input captcha code(captcha.png):")
+                readln()
+            },
+            onRealName = { error("当前账号尚未完成认证") }
+        )
+
+        println("Cookie:")
+        println(state.toWrappedCookie())
+
+        // x19 protocol
+        val x19 = WPLauncherAPI.login(state)
+        val self = x19.getSelfDetail()
+        println("WPLauncher profile: ${self.name} (${x19.session.id})")
+
+        val details = x19.getItemDetails(4661334467366178884UL)
+        val connection = x19.getNetworkServerAddress(4661334467366178884UL)
+
+        println("Heypixel name: ${details.name}") // 布吉岛·新玩法上线
+        println("Heypixel online: ${details.currentOnline}")
+        println("Heypixel address: ${connection.address}") // pc.bjdmc.net:25565
+    }
+}
+```
 
 ## 一些常见问题
 
 Q: 为什么要使用`kotlin`编写, 有其它语言编写的版本吗?
 
-A: 很遗憾由于主要维护者没有过多经历, 我们只支持 `kotlin/jvm`
+A: 很遗憾我们并没有相关时间去编写, 目前只能在 `kotlin/jvm` / `Java` 语言中使用
 
 Q: 为什么不能通过 `4399pc` 登录?
 
