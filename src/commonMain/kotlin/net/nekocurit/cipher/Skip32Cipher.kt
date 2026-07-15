@@ -1,5 +1,6 @@
 package net.nekocurit.cipher
 
+import io.ktor.utils.io.core.toByteArray
 import korlibs.crypto.md5
 
 class Skip32Cipher(val key: ByteArray = "SaintSteve".toByteArray()) {
