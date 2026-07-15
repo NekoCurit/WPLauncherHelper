@@ -1,6 +1,8 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
+
+    `maven-publish`
 }
 
 group = "net.nekocurit.wplauncher_helper"
@@ -10,16 +12,25 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    api(platform(libs.ktor.bom))
-    api(libs.ktor.client.core)
-    api(libs.ktor.client.java)
-    api(libs.ktor.client.content.negotiation)
-    api(libs.ktor.serialization.kotlinx.json)
+kotlin {
+    jvm()
+    linuxX64()
+    mingwX64()
+    macosArm64()
 
-    api(libs.korlibs.crypto)
-}
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.korlibs.crypto)
 
-java {
-    withSourcesJar()
+            api(libs.ktor.client.core)
+            api(libs.ktor.client.content.negotiation)
+            api(libs.ktor.serialization.kotlinx.json)
+        }
+        jvmMain.dependencies {
+            api(libs.ktor.client.java)
+        }
+        nativeMain.dependencies {
+            api(libs.ktor.client.cio)
+        }
+    }
 }

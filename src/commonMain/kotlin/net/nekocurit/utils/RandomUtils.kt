@@ -14,5 +14,13 @@ fun Random.nextMacAddress(separator: String = ":", uppercase: Boolean = true) = 
         mac[0] = (mac[0].toInt() or 0x02).toByte()
     }
     .joinToString(separator) {
-        String.format(if (uppercase) "%02X" else "%02x", it.toInt() and 0xFF)
+        (it.toInt() and 0xFF)
+            .toString(16)
+            .padStart(2, '0')
+            .let { value ->
+                when(uppercase) {
+                    true -> value.uppercase()
+                    else -> value.lowercase()
+                }
+            }
     }

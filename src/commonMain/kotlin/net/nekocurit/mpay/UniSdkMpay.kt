@@ -8,6 +8,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.runBlocking
 import net.nekocurit.mpay.data.RespondMpayDeviceRegister
 import net.nekocurit.mpay.data.RespondMpayLogin
