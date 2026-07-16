@@ -86,10 +86,10 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         forms.appendCaptcha(captcha)
 
         return client.submitForm(url = "/oauth2/loginAndAuthorize.do?channel=&sdk=op", formParameters = forms.toParameters())
-            .let { response ->
-                when (response.status) {
-                    HttpStatusCode.OK -> response.bodyAsText()
-                        .let { text ->
+            .let { respondLogin ->
+                when (respondLogin.status) {
+                    HttpStatusCode.OK -> respondLogin.bodyAsText()
+                        .let login@{ text ->
                             // 通常失败提示
                             Regex("""<p\s+class="warning_tips\s+global_ico"\s+id="login_err_msg">\s*(.*?)\s*</p>""")
                                 .find(text)
@@ -98,19 +98,24 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
 
                             // 需要完成账号实名认证
                             if (text.contains("/oauth2/setIdcardAndRealname.do")) {
-                                val forms2 = response.decodeForms("""<div class="input_wrap_id finput_wrap">""")
+                                val forms2 = respondLogin.decodeForms("""<div class="input_wrap_id finput_wrap">""")
                                 onRealName().also { (name, card) ->
                                     forms2["realname"] = name
                                     forms2["idcard" ] = card
                                 }
 
                                 client.submitForm(url = "/oauth2/setIdcardAndRealname.do", formParameters = forms2.toParameters())
-                                    .also { println(it.bodyAsText()) }
+                                    .let realname@{ respondRealName ->
+                                        when (respondRealName.status) {
+                                            HttpStatusCode.Found -> return@login client.get(respondRealName.headers[HttpHeaders.Location]!!)
+                                            else -> error("实名信息设置失败")
+                                        }
+                                    }
                             }
 
                             error("未知错误")
                         }
-                    HttpStatusCode.Found -> client.get(response.headers[HttpHeaders.Location]!!)
+                    HttpStatusCode.Found -> client.get(respondLogin.headers[HttpHeaders.Location]!!)
                     else -> error("状态异常")
                 }
             }
@@ -146,7 +151,6 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         forms.appendCaptcha(captcha)
 
         val respondStep1 = client.submitForm(url = "/oauth2/registerAndAuthorize.do", formParameters = forms.toParameters())
-        println(respondStep1.status)
         when (respondStep1.status) {
             // 302 重定向到 oauth 重定向链接
             // 但此时并不代表能重新登录, 再次调用 `login` 方法完成实名认证
