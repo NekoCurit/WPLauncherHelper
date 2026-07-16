@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Download Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -26,6 +26,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v5.0.0
 
       - name: Build
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          ./gradlew build
+          ./gradlew publish \
+            -PmavenCentralUsername=${{ secrets.MAVEN_USERNAME }} \
+            -PmavenCentralPassword=${{ secrets.MAVEN_PASSWORD }}
