@@ -37,8 +37,17 @@ kotlin {
 }
 
 val isRelease = System.getenv("GITHUB_REF_TYPE") == "tag"
-val privateKey = Pair(System.getenv("GPG_PRIVATE_KEY")?.replace("\\n", "\n"), System.getenv("GPG_PASSWORD"))
-    .takeIf { (key, password) -> key != null && password != null }
+val privateKey = let {
+    val key = System.getenv("GPG_PRIVATE_KEY")
+        ?.replace("\\n", "\n")
+        ?.takeIf { it.isNotBlank() }
+        ?: return@let null
+    val password = System.getenv("GPG_PASSWORD")
+        ?.takeIf { it.isNotBlank() }
+        ?: return@let null
+
+    Pair(key, password)
+}
 
 mavenPublishing {
     if (isRelease) publishToMavenCentral()
