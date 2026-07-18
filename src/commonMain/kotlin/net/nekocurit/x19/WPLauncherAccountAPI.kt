@@ -24,7 +24,7 @@ class WPLauncherAccountAPI(var session: WPLauncherSession) {
             json(json, contentType = ContentType.Any)
         }
         defaultRequest {
-            header("User-Agent", "WPFLauncher/0.0.0.0")
+            userAgent("WPFLauncher/0.0.0.0")
         }
     }
 
