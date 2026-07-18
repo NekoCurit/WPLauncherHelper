@@ -3,6 +3,7 @@ package net.nekocurit.i4399.x19
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -26,20 +27,26 @@ object I4399PCGameAPI {
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true }, contentType = ContentType.Any)
             }
+            defaultRequest {
+                url("https://ptlogin.4399.com")
+            }
         }
 
         val now = Clock.System.now().toEpochMilliseconds()
 
+        // 调用此请求以获取 phlogact 与 USESSIONID
+        client.get("/ptlogin/loginFrame.do")
+
         // 验证码预处理
-        val session = client.get("https://ptlogin.4399.com/ptlogin/verify.do?username=${username}&appId=kid_wdsj&t=${now}&inputWidth=iptw2&v=1").bodyAsText()
+        val session = client.get("/ptlogin/verify.do?username=${username}&appId=kid_wdsj&t=${now}&inputWidth=iptw2&v=1").bodyAsText()
             .takeIf { it != "0" }
             ?.let { Regex("captchaId=(.+?)'").find(it) }
             ?.groupValues
             ?.get(1)
-            ?.let { session -> session to onCaptcha(client.get("https://ptlogin.4399.com/ptlogin/captcha.do?captchaId=$session").bodyAsBytes()) }
+            ?.let { session -> session to onCaptcha(client.get("/ptlogin/captcha.do?captchaId=$session").bodyAsBytes()) }
 
         val randTime = client.submitForm(
-            url = "https://ptlogin.4399.com/ptlogin/login.do?v=1",
+            url = "/ptlogin/login.do?v=1",
             formParameters = Parameters.build {
                 append("bizId", "2100001792")
                 append("appId", "kid_wdsj")
