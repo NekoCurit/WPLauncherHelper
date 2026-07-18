@@ -8,8 +8,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.runBlocking
+import io.ktor.utils.io.core.*
 import net.nekocurit.mpay.data.RespondMpayDeviceRegister
 import net.nekocurit.mpay.data.RespondMpayLogin
 import net.nekocurit.mpay.data.RespondMpayLoginError
@@ -24,11 +23,12 @@ import kotlin.io.encoding.Base64
 import kotlin.random.Random
 import kotlin.uuid.Uuid
 
-class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: String = runBlocking { WPLUpdaterAPI.get().version }) {
+class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: String) {
 
     companion object {
         @Suppress("SpellCheckingInspection")
         const val SCOPE = "nickname,avatar,realname_status,mobile_bind_status,mask_related_mobile,related_login_status"
+        suspend fun newInstance() = UniSdkMpay(version = WPLUpdaterAPI.get().version)
     }
 
     val client = HttpClient {
