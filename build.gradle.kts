@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "net.nekocurit.wplauncher_helper"
-version = "1.0.1"
+version = project.property("version") as String
 
 repositories {
     mavenCentral()
