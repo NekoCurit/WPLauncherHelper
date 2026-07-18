@@ -96,6 +96,11 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
                                 ?.groupValues[1]
                                 ?.also { error(it) }
 
+                            Regex("""<p\s+class="ipt_tips ipt_tips_err global_ico"\s+id="captcha1_err_msg">\s*(.*?)\s*</p>""")
+                                .find(text)
+                                ?.groupValues[1]
+                                ?.also { error(it) }
+
                             // 需要完成账号实名认证
                             if (text.contains("/oauth2/setIdcardAndRealname.do")) {
                                 val forms2 = respondLogin.decodeForms("""<div class="input_wrap_id finput_wrap">""")
