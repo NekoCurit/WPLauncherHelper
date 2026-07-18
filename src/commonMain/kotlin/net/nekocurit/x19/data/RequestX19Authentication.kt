@@ -1,11 +1,9 @@
 package net.nekocurit.x19.data
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.utils.nextString
 import net.nekocurit.utils.json
-import net.nekocurit.x19.NetEaseEncryptUtils
 import net.nekocurit.x19.WPLUpdaterAPI
 import net.nekocurit.x19.data.cookie.AbstractWPLauncherCookie
 import net.nekocurit.x19.data.entity.X19LoginOtp
@@ -67,7 +65,11 @@ data class RequestX19Authentication(
         override fun toString() = json.encodeToString(this)
     }
 
-    constructor(cookie: AbstractWPLauncherCookie, data: X19LoginOtp, latest: String = runBlocking { WPLUpdaterAPI.get().version }): this(
+    companion object {
+        suspend fun fromLoginOtpRespond(cookie: AbstractWPLauncherCookie, data: X19LoginOtp) = RequestX19Authentication(cookie, data, WPLUpdaterAPI.get().version)
+    }
+
+    constructor(cookie: AbstractWPLauncherCookie, data: X19LoginOtp, latest: String): this(
         otpToken = data.otpToken,
         aid = data.aid,
         sauth = cookie.toCookie().toString().replace(""""platform":"ad"""", """"platform":"pc""""),
@@ -84,5 +86,4 @@ data class RequestX19Authentication(
         val md5Updater: String = "",
     )
 
-    fun generateRequestBody() = NetEaseEncryptUtils.httpEncrypt(json.encodeToString(this))
 }

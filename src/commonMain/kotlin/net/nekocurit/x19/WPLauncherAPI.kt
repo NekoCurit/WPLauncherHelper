@@ -53,7 +53,7 @@ object WPLauncherAPI {
 
     suspend fun authentication(cookie: AbstractWPLauncherCookie, login: X19LoginOtp) = client.post("https://x19obtcore.nie.netease.com:8443/authentication-otp") {
         contentType(ContentType.Application.Json)
-        setBody(RequestX19Authentication(cookie, login).generateRequestBody())
+        setBody(RequestX19Authentication.fromLoginOtpRespond(cookie, login))
     }
         .let { NetEaseEncryptUtils.httpDecrypt(it.bodyAsBytes()) }
         .let { json.decodeFromString<ResponseX19Base>(it) }
