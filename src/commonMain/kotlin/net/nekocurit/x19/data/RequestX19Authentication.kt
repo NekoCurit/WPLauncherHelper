@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.nekocurit.utils.nextString
 import net.nekocurit.utils.json
+import net.nekocurit.x19.NetEaseEncryptUtils
 import net.nekocurit.x19.WPLUpdaterAPI
 import net.nekocurit.x19.data.cookie.AbstractWPLauncherCookie
 import net.nekocurit.x19.data.entity.X19LoginOtp
@@ -85,5 +86,7 @@ data class RequestX19Authentication(
         @SerialName("updater_md5")
         val md5Updater: String = "",
     )
+
+    fun generateRequestBody() = NetEaseEncryptUtils.httpEncrypt(json.encodeToString(this))
 
 }
