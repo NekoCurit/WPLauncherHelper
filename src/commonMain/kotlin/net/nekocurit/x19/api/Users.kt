@@ -36,20 +36,6 @@ suspend fun WPLauncherAccountAPI.searchFriends(input: String, isMail: Boolean = 
     .decode<X19UserDetails>(this)
 
 /**
- * 主动添加好友
- *
- * @param id 用户Id
- * @param message 消息
- * @param selfNick 自身名称 通过`getSelfDetail`获取
- */
-suspend fun WPLauncherAccountAPI.sendFriendRequest(id: ULong, message: String = "", selfNick: String = session.name) = postWithAuth(
-    path = "/user-apply-friend",
-    body = """{"fid":$id,"comment":"$selfNick","message":"$message"}"""
-)
-    .body<ResponseX19Base>()
-    .throwOnNotOk()
-
-/**
  * 获取用户状态
  *
  * @param id 用户Id

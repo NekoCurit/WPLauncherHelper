@@ -20,6 +20,8 @@ data class ResponseX19Base(
         if (!isOk) error(message)
     }
 
+    fun unit() = let { }
+
     inline fun <reified T: X19AuthEntity> decode(api: WPLauncherAccountAPI, block: T.() -> Unit = {}) = json
         .decodeFromJsonElement<T>(entity)
         .also {
