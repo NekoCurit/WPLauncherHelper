@@ -1,14 +1,23 @@
 package net.nekocurit.x19.data.user
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.*
 import net.nekocurit.utils.json
 import net.nekocurit.utils.serializer.InstantLongSSerializer
 import net.nekocurit.x19.data.X19AuthEntity
+import net.nekocurit.x19.data.status.X19UserStatus
 import kotlin.time.Instant
 
+/**
+ * @param onlineStatus 传统Java版在线信息
+ * @param gameInfo 互通Bedrock版在线信息
+ */
 @Serializable
 data class X19UserDetails(
     val nickname: String,
@@ -27,74 +36,35 @@ data class X19UserDetails(
     @Serializable(with = InstantLongSSerializer::class)
     val lastOnline: Instant,
     @SerialName("online_status")
-    private val rawOnlineStatus: String,
+    @Serializable(with = OnlineStatusSerializer::class)
+    val onlineStatus: X19UserStatus?,
     @SerialName("game_info")
-    private val rawGameInfo: JsonElement
+    @Serializable(with = GameInfoSerializer::class)
+    val gameInfo: GameInfo?
 ): X19AuthEntity() {
 
-    val statusPc
-        get() = rawOnlineStatus
-            .takeIf { it.isNotBlank() }
-            ?.let { json.decodeFromString<OnlineStatus>(it) }
-            ?.hint
-
-    val statusPe
-        get() = runCatching {
-            json.decodeFromJsonElement<OnlinePe>(rawGameInfo)
-        }
-            .getOrNull()
-
     @Serializable
-    data class OnlinePe(
+    data class GameInfo(
         @SerialName("game-type")
         val type: UInt,
         @SerialName("game-id")
-        val id: ULong,
+        val id: String,
         @SerialName("game-info")
-        private val rawInfo: String
-    ) {
+        val info: String // 此字段过于复杂 不方便写解析
+    )
 
-        val info
-            get() = json.decodeFromString<Info>(rawInfo)
-
-        @Serializable
-        data class Info(
-            @SerialName("room_name")
-            val roomName: String,
-            @SerialName("title_image_url")
-            val titleImageUrl: String,
-            @SerialName("res_name")
-            val resName: String,
-        )
+    private object OnlineStatusSerializer: KSerializer<X19UserStatus?> {
+        override val descriptor = PrimitiveSerialDescriptor("OnlineStatus", PrimitiveKind.STRING)
+        override fun serialize(encoder: Encoder, value: X19UserStatus?) = encoder.encodeString(value?.let { value -> json.encodeToString(value) } ?: "")
+        override fun deserialize(decoder: Decoder) = decoder.decodeString()
+            .takeIf { it.isNotEmpty() }
+            ?.let { Json.decodeFromString<X19UserStatus>(it) }
     }
 
-    @Serializable
-    data class OnlinePc(
-        @SerialName("game_name")
-        val name: String,
-        @SerialName("game_id")
-        val rawId: String,
-        @SerialName("game_type")
-        val type: UInt,
-        @SerialName("host_id")
-        val host: String
-    ) {
-        val id
-            get() = rawId.toULong()
-        val hostId
-            get() = host.toULong()
-    }
-
-    @Serializable
-    data class OnlineStatus(
-        val status: Int,
-        @SerialName("hint")
-        private val rawHint: String
-    ) {
-
-        val hint
-            get() = rawHint
-                .takeIf { it.isNotBlank() }
-                ?.let { json.decodeFromString<OnlinePc>(it) }
+    private object GameInfoSerializer: KSerializer<GameInfo?> {
+        override val descriptor = PrimitiveSerialDescriptor("GameInfo", PrimitiveKind.STRING)
+        override fun serialize(encoder: Encoder, value: GameInfo?) = (encoder as JsonEncoder).encodeJsonElement(json.encodeToJsonElement(value))
+        override fun deserialize(decoder: Decoder) = (decoder as JsonDecoder).decodeJsonElement()
+            .let { raw -> runCatching { json.decodeFromJsonElement<GameInfo>(raw) }.onFailure { it.printStackTrace() }.getOrNull() }
     }
 }
