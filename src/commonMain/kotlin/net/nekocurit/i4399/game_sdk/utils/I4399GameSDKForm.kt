@@ -18,7 +18,7 @@ suspend fun HttpResponse.decodeForms(
 fun String.decodeForms(
     substringBefore: String = """<label for="protocol">我已同意</label>"""
 ): I4399GameSDKForm = this
-    //.substringBefore(substringBefore)
+    .substringBefore(substringBefore)
     .let { REGEX.findAll(it) }
     .associate { it.groupValues[1] to it.groupValues[2] }
     .toMutableMap()

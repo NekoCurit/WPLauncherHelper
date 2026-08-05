@@ -12,6 +12,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import net.nekocurit.i4399.I4399EncryptUtils
 import net.nekocurit.i4399.game_sdk.config.Config
@@ -24,6 +25,7 @@ import net.nekocurit.i4399.game_sdk.utils.toParameters
 import net.nekocurit.i4399.x19.data.Response4399X19Done
 import net.nekocurit.i4399.x19.data.Response4399X19Oauth
 import net.nekocurit.x19.data.cookie.WPLauncherCookie4399Com
+import kotlin.time.Duration.Companion.seconds
 
 class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession? = null) {
 
@@ -153,6 +155,8 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         val forms1 = sessionNotNull.forms.toMutableMap()
         forms1["auth_action"] = "register"
         forms1["reg_mode"] = "reg_normal"
+
+        delay(1.seconds)
         val forms2 = client.submitForm("/oauth2/authorize.do?channel=&sdk=op", formParameters = forms1.toParameters()).decodeForms()
 
         val captcha = forms2.doCaptcha(this, onCaptcha)
@@ -161,6 +165,7 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         forms2["password"] = I4399EncryptUtils.encrypt(password)
         forms2.appendCaptcha(captcha)
 
+        delay(3.seconds)
         val respondStep1 = client.submitForm(url = "/oauth2/registerAndAuthorize.do", formParameters = forms2.toParameters())
         when (respondStep1.status) {
             // 302 重定向到 oauth 重定向链接
