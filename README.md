@@ -9,7 +9,8 @@ WPLauncherHelper 是一个使用 Kotlin/JVM 轻量的实现
 
 - 🟩 Mpay
     - 🟩 用户名密码登录
-    - 🟩 短信验证码获取及登录
+    - 🟩 手机号+一次性代码登录
+    - 🟩 手机号+密码登录
 - 🟩 4399
     - 🟨 创建账号 (受到速率限制)
     - 🟩 登录账号
@@ -47,8 +48,11 @@ WPLauncherHelper 是一个使用 Kotlin/JVM 轻量的实现
     - 🟨 好友系统
         - 🟩 搜索好友
         - 🟩 主动添加好友
-        - 🟥 查看好友列表
-        - 🟥 删除好友
+        - 🟩 同意/拒绝好友申请
+        - 🟩 查看好友列表
+        - 🟩 删除好友
+        - 🟩 设置在线状态
+        - 🟥 发送/接收好友消息
     - 🟩 图床
         - 🟩 上传图片并获取图片直链 (需审核)
     - 🟩 游戏内
@@ -57,6 +61,19 @@ WPLauncherHelper 是一个使用 Kotlin/JVM 轻量的实现
     - 🟩 算法
         - 🟩 根据 **UUID** 计算 **启动器账号 EntityId**
 - 🟥 g79
+
+## 作为库使用
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 把 ${version} 替换成最新版本
+    implementation("io.github.kawaiinekochanproject:wplauncher-helper:${version}")
+}
+```
 
 ## 快速开始
 
@@ -71,7 +88,7 @@ fun main(vararg args: String) {
         val state = when (username.contains("@")) {
             true -> {
                 // mpay (aka. 163) login
-                val api = UniSdkMpay()
+                val api = UniSdkMpay.newInstance()
                 val device = api.registerDevice()
 
                 api.login(device, username, password).toCookie(device)
