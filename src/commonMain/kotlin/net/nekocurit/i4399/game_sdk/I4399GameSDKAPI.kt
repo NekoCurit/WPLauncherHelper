@@ -12,18 +12,20 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
+import net.nekocurit.i4399.I4399EncryptUtils
 import net.nekocurit.i4399.game_sdk.config.Config
 import net.nekocurit.i4399.game_sdk.entity.I4399GameSDKCaptcha.Companion.appendCaptcha
 import net.nekocurit.i4399.game_sdk.entity.I4399GameSDKCaptcha.Companion.doCaptcha
 import net.nekocurit.i4399.game_sdk.entity.I4399GameSDKOauthSession
+import net.nekocurit.i4399.game_sdk.entity.I4399GameSDKOauthSession.Companion.sessionNotNull
 import net.nekocurit.i4399.game_sdk.utils.decodeForms
-import net.nekocurit.i4399.game_sdk.utils.requestForms
 import net.nekocurit.i4399.game_sdk.utils.toParameters
-import net.nekocurit.i4399.x19.data.Request4399X19Authorize
 import net.nekocurit.i4399.x19.data.Response4399X19Done
 import net.nekocurit.i4399.x19.data.Response4399X19Oauth
 import net.nekocurit.x19.data.cookie.WPLauncherCookie4399Com
+import kotlin.time.Duration.Companion.seconds
 
 class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession? = null) {
 
@@ -60,7 +62,7 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
      *
      * @param device 设备码
      */
-    suspend fun registerDevice(device: String = "") = I4399GameSDKOauthSession(client.get(generateOauthUrl(device)).bodyAsText())
+    suspend fun registerDevice(device: String = "") = I4399GameSDKOauthSession.fromOauthRespond(client.get(generateOauthUrl(device)))
         .also { session = it }
 
     /**
@@ -78,14 +80,17 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         onRealName: suspend () -> Pair<String, String>
     ): WPLauncherCookie4399Com {
         val preFullSession = client.cookies("https://ptlogin.4399.com").count() > 2
-        val forms = requestForms(Request4399X19Authorize.Action.Login)
-        val captcha = forms.doCaptcha(this, onCaptcha)
+        val forms1 = sessionNotNull.forms.toMutableMap()
+        forms1["auth_action"] = "ORILOGIN"
+        val forms2 = client.submitForm("/oauth2/authorize.do?channel=&sdk=op", formParameters = forms1.toParameters()).decodeForms()
 
-        forms["username"] = username
-        forms["password"] = password
-        forms.appendCaptcha(captcha)
+        val captcha = forms2.doCaptcha(this, onCaptcha)
 
-        return client.submitForm(url = "/oauth2/loginAndAuthorize.do?channel=&sdk=op", formParameters = forms.toParameters())
+        forms2["username"] = username
+        forms2["password"] = password
+        forms2.appendCaptcha(captcha)
+
+        return client.submitForm(url = "/oauth2/loginAndAuthorize.do?channel=&sdk=op", formParameters = forms2.toParameters())
             .let { respondLogin ->
                 when (respondLogin.status) {
                     HttpStatusCode.OK -> respondLogin.bodyAsText()
@@ -147,15 +152,21 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         personal: Pair<String, String>,
         onCaptcha: suspend (ByteArray) -> String
     ): WPLauncherCookie4399Com {
-        val forms = requestForms(Request4399X19Authorize.Action.Register)
-        val captcha = forms.doCaptcha(this, onCaptcha)
+        val forms1 = sessionNotNull.forms.toMutableMap()
+        forms1["auth_action"] = "register"
+        forms1["reg_mode"] = "reg_normal"
 
-        forms["reg_mode"] = "reg_normal"
-        forms["username"] = username
-        forms["password"] = password
-        forms.appendCaptcha(captcha)
+        delay(1.seconds)
+        val forms2 = client.submitForm("/oauth2/authorize.do?channel=&sdk=op", formParameters = forms1.toParameters()).decodeForms()
 
-        val respondStep1 = client.submitForm(url = "/oauth2/registerAndAuthorize.do", formParameters = forms.toParameters())
+        val captcha = forms2.doCaptcha(this, onCaptcha)
+
+        forms2["username"] = username
+        forms2["password"] = I4399EncryptUtils.encrypt(password)
+        forms2.appendCaptcha(captcha)
+
+        delay(3.seconds)
+        val respondStep1 = client.submitForm(url = "/oauth2/registerAndAuthorize.do", formParameters = forms2.toParameters())
         when (respondStep1.status) {
             // 302 重定向到 oauth 重定向链接
             // 但此时并不代表能重新登录, 再次调用 `login` 方法完成实名认证
@@ -171,7 +182,7 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
                     .find(respondStep1.bodyAsText())
                     ?.also { error("创建账号失败: ${it.groupValues[1]}") }
 
-                error("创建账号失败: ${respondStep1.bodyAsText()}")
+                error("创建账号失败: ${respondStep1.bodyAsText().trim()}")
             }
         }
     }
