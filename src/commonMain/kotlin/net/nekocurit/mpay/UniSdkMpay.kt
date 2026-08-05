@@ -16,11 +16,13 @@ import net.nekocurit.mpay.data.RespondMpayTicket
 import net.nekocurit.mpay.entity.MpayDevice
 import net.nekocurit.mpay.utils.MpayLoginEncrypt
 import net.nekocurit.utils.json
+import net.nekocurit.utils.md5
 import net.nekocurit.utils.nextMacAddress
 import net.nekocurit.utils.nextString
 import net.nekocurit.x19.WPLUpdaterAPI
 import kotlin.io.encoding.Base64
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: String) {
@@ -86,7 +88,7 @@ class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: St
         .user
 
     /**
-     * 请求短信发送验证码
+     * 请求发送一次性代码
      *
      * @param device 设备标识
      * @param phone 手机号
@@ -99,18 +101,18 @@ class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: St
                 append("mobile", phone)
             }
         )
-        .also { println(it.bodyAsText()) }
         .checkError()
         .let { }
 
     /**
-     * 验证验证码并登陆
+     * 手机号+一次性代码 登录
+     * 使用 [requestSms] 发送一次性代码
      *
      * @param device 设备标识
      * @param phone 手机号
      * @param code 收到的验证码
      */
-    suspend fun verifySms(device: MpayDevice, phone: String, code: String) = client
+    suspend fun loginByPhoneSms(device: MpayDevice, phone: String, code: String) = client
         .submitForm(
             url = "/mpay/api/users/login/mobile/verify_sms",
             formParameters = buildMpayParameters {
@@ -123,20 +125,49 @@ class UniSdkMpay(val project: String = "aecfrxodyqaaaajp-g-x19", val version: St
         )
         .checkError()
         .body<RespondMpayTicket>()
-        .let { ticket ->
-            client
-                .submitForm(
-                    url = "/mpay/api/users/login/mobile/finish?un=${Base64.encode(phone.toByteArray())}",
-                    formParameters = buildMpayParameters {
-                        append("device_id", device.id)
-                        append("opt_fields", SCOPE)
-                        append("ticket", ticket.ticket)
-                    }
-                )
-                .checkError()
-                .body<RespondMpayLogin>()
-                .user
-        }
+        .let { finishPhoneLogin(device, it, phone) }
+
+    /**
+     * 手机号+密码 登录
+     *
+     * @param device 设备标识
+     * @param phone 手机号
+     * @param password 密码
+     */
+    suspend fun loginByPhonePassword(device: MpayDevice, phone: String, password: String) = client
+        .submitForm(
+            url = "/mpay/api/users/login/mobile/verify_pwd?un=${Base64.encode(phone.toByteArray())}",
+            formParameters = buildMpayParameters {
+                append("device_id", device.id)
+                append("login_for", "1")
+                append("mcount_transaction_id", "3")
+                append("mobile", phone)
+                append("opt_fields", SCOPE)
+                append("password", password.md5())
+                append("up_content", "")
+
+                val now = Clock.System.now().toEpochMilliseconds()
+                append("transid", "${device.uniqueId}_${now}_100022997")
+                append("uni_transaction_id", "${device.uniqueId}_${now}_100023001")
+                append("urs_udid", device.uniqueId)
+            }
+        )
+        .checkError()
+        .body<RespondMpayTicket>()
+        .let { finishPhoneLogin(device, it, phone) }
+
+    suspend fun finishPhoneLogin(device: MpayDevice, ticket: RespondMpayTicket, phone: String) = client
+        .submitForm(
+            url = "/mpay/api/users/login/mobile/finish?un=${Base64.encode(phone.toByteArray())}",
+            formParameters = buildMpayParameters {
+                append("device_id", device.id)
+                append("opt_fields", SCOPE)
+                append("ticket", ticket.ticket)
+            }
+        )
+        .checkError()
+        .body<RespondMpayLogin>()
+        .user
 
     @Suppress("SpellCheckingInspection")
     private fun buildMpayParameters(block: ParametersBuilder.() -> Unit) = Parameters.build {
