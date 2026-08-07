@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
+import net.nekocurit.I4399_API_URL
 import net.nekocurit.i4399.I4399EncryptUtils
 import net.nekocurit.i4399.game_sdk.config.Config
 import net.nekocurit.i4399.game_sdk.entity.I4399GameSDKCaptcha.Companion.appendCaptcha
@@ -35,7 +36,8 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
             json(Json { ignoreUnknownKeys = true }, contentType = ContentType.Any)
         }
         defaultRequest {
-            url("https://ptlogin.4399.com/")
+            url(I4399_API_URL.toString())
+            header(HttpHeaders.UserAgent, "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0")
         }
     }
 
@@ -79,7 +81,7 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         onCaptcha: suspend (ByteArray) -> String,
         onRealName: suspend () -> Pair<String, String>
     ): WPLauncherCookie4399Com {
-        val preFullSession = client.cookies("https://ptlogin.4399.com").count() > 2
+        val preFullSession = client.cookies(I4399_API_URL).count() > 2
         val forms1 = sessionNotNull.forms.toMutableMap()
         forms1["auth_action"] = "ORILOGIN"
         val forms2 = client.submitForm("/oauth2/authorize.do?channel=&sdk=op", formParameters = forms1.toParameters()).decodeForms()
@@ -156,7 +158,6 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         forms1["auth_action"] = "register"
         forms1["reg_mode"] = "reg_normal"
 
-        delay(1.seconds)
         val forms2 = client.submitForm("/oauth2/authorize.do?channel=&sdk=op", formParameters = forms1.toParameters()).decodeForms()
 
         val captcha = forms2.doCaptcha(this, onCaptcha)
@@ -165,7 +166,8 @@ class I4399GameSDKAPI(val config: Config, var session: I4399GameSDKOauthSession?
         forms2["password"] = I4399EncryptUtils.encrypt(password)
         forms2.appendCaptcha(captcha)
 
-        delay(3.seconds)
+        delay(5.seconds) // 4399有间隔检测或者是生成的会话凭据尚未被写入redis(仅为猜测) 不进行延迟无法注册
+
         val respondStep1 = client.submitForm(url = "/oauth2/registerAndAuthorize.do", formParameters = forms2.toParameters())
         when (respondStep1.status) {
             // 302 重定向到 oauth 重定向链接
