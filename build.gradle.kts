@@ -6,8 +6,9 @@ plugins {
     alias(libs.plugins.signing)
 }
 
-group = "net.nekocurit.wplauncher_helper"
+group = project.property("group") as String
 version = project.property("version") as String
+val repo = project.property("repo") as String
 
 repositories {
     mavenCentral()
@@ -56,7 +57,7 @@ mavenPublishing {
         }
     }
     if (privateKey != null) signAllPublications()
-    coordinates("io.github.kawaiinekochanproject", project.name, project.version.toString())
+    coordinates(rootProject.group.toString(), rootProject.name, rootProject.version.toString())
     pom {
         name.set("WPLauncherHelper")
         description.set("A Kotlin multiplatform library for WPLauncher api.")
@@ -74,9 +75,15 @@ mavenPublishing {
             }
         }
         scm {
-            connection.set("scm:git:https://github.com/KawaiiNekoChanProject/WPLauncherHelper.git")
-            developerConnection.set("scm:git:ssh://git@github.com/KawaiiNekoChanProject/WPLauncherHelper.git")
-            url.set("https://github.com/KawaiiNekoChanProject/WPLauncherHelper")
+            connection.set("scm:git:https://github.com/$repo.git")
+            developerConnection.set("scm:git:ssh://git@github.com/$repo.git")
+            url.set("https://github.com/$repo")
+        }
+        distributionManagement {
+            relocation {
+                groupId.set(rootProject.group.toString())
+                artifactId.set("wpflauncher-protocol")
+            }
         }
     }
 }
