@@ -6,6 +6,7 @@ import net.nekocurit.x19.data.ResponseX19Base
 import net.nekocurit.x19.data.ResponseX19BaseMulti
 import net.nekocurit.x19.data.item.X19ItemDetails
 import net.nekocurit.x19.data.item.X19ItemSimple
+import net.nekocurit.x19.data.item.X19ItemTitleImage
 
 /**
  * 列举有效组件列表
@@ -30,3 +31,22 @@ suspend fun WPLauncherAccountAPI.getItemDetails(itemId: ULong) = postWithAuth("/
     .body<ResponseX19Base>()
     .throwOnNotOk()
     .decode<X19ItemDetails>(this)
+
+
+suspend fun WPLauncherAccountAPI.getItemTitleImage(itemId: ULong, channel: Int = 24) = postWithAuth(
+    path = "/item-channel/query/search-by-item-channel",
+    body = """{"item_id": $itemId,"channel_id": $channel}"""
+)
+    .body<ResponseX19BaseMulti>()
+    .throwOnNotOk()
+    .decode<X19ItemTitleImage>(this)
+    .single()
+
+
+suspend fun WPLauncherAccountAPI.getItemTitleImage(itemIds: List<ULong>, channel: Int = 24) = postWithAuth(
+    path = "/item-channel/query/search-item-channel-list-by-id",
+    body = """{"item_id_list": [${itemIds.joinToString(", ")}],"channel_id": $channel}"""
+)
+    .body<ResponseX19BaseMulti>()
+    .throwOnNotOk()
+    .decode<X19ItemTitleImage>(this)
